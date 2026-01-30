@@ -1,0 +1,25 @@
+tasks:
+- label: Pics
+  source: /home/user/Pictures
+  target: /home/user/Library/CloudStorage/Dropbox/Pictures
+  name: Pictures
+  synced: '2026-01-30 20:00:00'
+  ignore:
+  - startswith:
+    - .
+    - Custom1_
+    endswith:
+    - .ext1
+    - .ext2
+- label: Movs
+  source: /home/user/Movies
+  target: /home/user/Library/CloudStorage/Dropbox/Movies
+  name: Movies
+  synced: '2026-01-30 20:00:00'
+  ignore:
+  - startswith:
+    - .
+    - Custom2_
+    - Custom3_
+    endswith:
+    - .ext3

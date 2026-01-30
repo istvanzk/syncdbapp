@@ -1,0 +1,3 @@
+[submodule "cloudfile_cli"]
+	path = cloudfile_cli
+	url = git@github.com:istvanzk/cloudfile
