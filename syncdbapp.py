@@ -43,7 +43,8 @@ import subprocess
 import shutil
 import logging
 from stat import S_ISDIR, S_ISREG
-from typing import Any, Callable, Dict, List
+from typing import Any, Dict, List
+from collections.abc import Callable
 
 # Constants
 LOG_FILE_PATH  = "history_syncdbapp"
@@ -59,19 +60,19 @@ logging.basicConfig(
 )
         
 class SyncDBFrame(wx.Frame):
-    """Main application window for syncing files to Dropbox."""
+    """Main wxPython application window for syncing local files to Dropbox cloud."""
     def __init__(self):
-        super().__init__(parent=None, title='Sync files to Cloud (copy, evict) - V1.0', size=(400, 300),
+        super().__init__(parent=None, title='Sync files to Cloud (copy, evict) - V1.0', size=wx.Size(400, 300),
                          style=(wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER) | wx.STAY_ON_TOP)
 
         # Internal parameters
-        self.taskConfigs: List[Dict[str, Any]] = []
-        self.taskSizers: List[wx.StaticBoxSizer] = []
-        self.taskLabels: List[str]   = []
-        self.taskBtns: List[wx.Button]   = []
-        self.taskGauges: List[wx.Gauge]  = []
-        self.taskStatus: List[wx.StaticText]  = []
-        self.taskFiles: List[List[tuple]] = []
+        self.taskConfigs: list[dict[str, Any]] = []
+        self.taskSizers: list[wx.StaticBoxSizer] = []
+        self.taskLabels: list[str]   = []
+        self.taskBtns: list[wx.Button]   = []
+        self.taskGauges: list[wx.Gauge]  = []
+        self.taskStatus: list[wx.StaticText]  = []
+        self.taskFiles: list[list[tuple]] = []
 
         # Initial states
         self.stop_requested = False
@@ -179,7 +180,7 @@ class SyncDBFrame(wx.Frame):
             self.tasksConfigs = []
         
         try:
-            with open(config_path, 'r') as file:
+            with open(config_path) as file:
                 config = yaml.safe_load(file)
                 self.taskConfigs = config.get('tasks', []) if config else []
                 if len(self.taskConfigs) == 0:
@@ -213,11 +214,11 @@ class SyncDBFrame(wx.Frame):
         height_per_row = 140  # Approximate height per task row
         total_height = base_height + (len(self.taskBtns) * height_per_row)
         
-        self.SetSize((600, total_height))
+        self.SetSize(wx.Size(600, total_height))
         self.SetMinSize(self.GetSize())
         self.SetMaxSize(self.GetSize())
 
-    def create_run_task_row(self, task: Dict[str, Any]) -> wx.StaticBoxSizer:
+    def create_run_task_row(self, task: dict[str, Any]) -> wx.StaticBoxSizer:
         """Creates a row in the GUI for a single sync task."""
         # Get  configs
         btn_label   = task.get('label', 'Task')
@@ -245,9 +246,9 @@ class SyncDBFrame(wx.Frame):
         #text_header = wx.StaticText(self.panel, label=th)
         #text_header.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_ITALIC, wx.FONTWEIGHT_BOLD))
         txt1 = wx.StaticText(self.panel, label="Source: " + txt_source)
-        txt1.SetForegroundColour((50, 200, 50))
+        txt1.SetForegroundColour(wx.Colour(150, 200, 150, 255))
         txt2 = wx.StaticText(self.panel, label="Target: " + txt_target)
-        txt2.SetForegroundColour((200, 50, 50))
+        txt2.SetForegroundColour(wx.Colour(200, 150, 150, 255))
         text_v_sizer.AddMany([txt1, txt2])
 
         row_sizer.Add(btn, 0, wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
@@ -256,7 +257,7 @@ class SyncDBFrame(wx.Frame):
 
         # Progress bar with short message text above it
         gauge_sizer = wx.BoxSizer(wx.VERTICAL)
-        gauge = wx.Gauge(self.panel, range=100, size=(250, 15))
+        gauge = wx.Gauge(self.panel, range=100, size=wx.Size(250, 15))
         gauge.SetValue(0) 
         st = wx.StaticText(self.panel, label="Status: Ready")
         gauge_sizer.Add(st, 0, wx.BOTTOM, 2)
@@ -539,11 +540,11 @@ class SyncDBFrame(wx.Frame):
                     # We wait a moment to ensure the Cloud provider "sees" the new file
                     if self.run_evict:
                         if not simsync:
-                            time.sleep(3.0) 
+                            time.sleep(5.0) 
                             # Using the orginal 'fileproviderctl' does not work in latest MacOS versions (2024+)!
                             # Use custom local code from https://github.com/istvanzk/cloudfile/tree/main
-                            subprocess.run(['./cloudfile', 'evict', target_path], capture_output=True, timeout=5, check=True)
-                            time.sleep(3.0) 
+                            subprocess.run(['./cloudfile', 'evict', target_path], capture_output=True, timeout=10, check=True)
+                            time.sleep(5.0) 
                             logging.info("%s Evicted %s", task_str, target_path)
                         else:
                             logging.info("%s SIMULATED EVICT for %s", task_str, target_path)
